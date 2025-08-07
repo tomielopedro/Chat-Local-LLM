@@ -5,25 +5,16 @@ Este é um aplicativo Streamlit que implementa um chatbot usando LangChain e Oll
 ## 🚀 Funcionalidades
 
 - Interface de chat intuitiva e responsiva
-- **Chat input posicionado abaixo das mensagens** (layout otimizado)
-- **Configuração de prompt personalizado para a IA** via interface
 - Integração com Ollama para modelos locais
 - Histórico de conversas persistente durante a sessão
 - Configurações personalizáveis do modelo
 - Status de conexão em tempo real
-- Tratamento de erros robusto
-- Estatísticas avançadas da conversa
+- Estatísticas da conversa
 
-## 🆕 Novidades da v2.0
 
-### 📍 Layout Otimizado
-- **Chat input movido para baixo**: O campo de entrada de mensagens agora fica posicionado abaixo do histórico de conversas, proporcionando uma experiência mais natural
-- **Separação visual**: Linha divisória clara entre o histórico e a área de entrada
+
 
 ### 🎯 Prompt Personalizado
-- **Configuração via interface**: Configure o comportamento da IA diretamente na sidebar
-- **Prompt em tempo real**: Aplique mudanças no prompt sem reiniciar o aplicativo
-- **Visualização do prompt ativo**: Veja qual prompt está sendo usado no painel de status
 - **Opção de prompt padrão**: Alterne entre prompt personalizado e o padrão do LangChain
 
 ## 📋 Pré-requisitos
@@ -69,8 +60,6 @@ streamlit run streamlit_chatbot.py
 ```
 
 3. **Acesse o aplicativo** no navegador (geralmente `http://localhost:8501`)
-
-4. **Configure o modelo e prompt** na barra lateral
 
 5. **Comece a conversar** digitando mensagens no campo de entrada (agora posicionado abaixo das mensagens)
 
