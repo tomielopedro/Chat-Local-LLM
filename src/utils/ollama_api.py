@@ -14,5 +14,8 @@ def listar_modelos_ollama():
 
 
 def test_ollama_connection(url):
-    test_response = requests.get(url, timeout=5)
-    return test_response.status_code == 200
+    try:
+        test_response = requests.get(url, timeout=5)
+        return test_response.status_code == 200
+    except:
+        return False

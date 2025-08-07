@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
+from RAG import ChatPDF
 
 # ─── CONFIGURAÇÕES INICIAIS ────────────────────────────────────────────────
 load_dotenv()
@@ -40,6 +41,14 @@ def get_chain():
             return None
     return st.session_state.chain
 
+def get_rag():
+    if "rag" not in st.session_state:
+        try:
+            st.session_state.rag = ChatPDF(llm_model=st.session_state.selected_model.model)
+        except Exception as e:
+            st.error(f"Erro ao inicializar o RAG: {str(e)}")
+            return None
+    return st.session_state.rag
 
 # ─── CONFIGURAÇÃO DA INTERFACE ─────────────────────────────────────────────
 
@@ -55,9 +64,27 @@ if "chain" not in st.session_state:
 
 # ───SIDEBAR ───────────────────────────────────────────────────────────────
 with st.sidebar:
-
+    chat_model = st.selectbox('Selecione o tipo de chat', ['Chat Padrão', 'RAG Chat'])
     use_default_prompt = st.checkbox("Usar prompt padrão do LangChain", value=False)
     show_think = st.checkbox("AI Think", value=False)
+
+    if chat_model == 'RAG Chat':
+        st.markdown("### 📄 Carregar Documento PDF")
+        uploaded_file = st.file_uploader("Escolha um arquivo PDF", type="pdf")
+
+        if uploaded_file:
+            with st.spinner("Processando o PDF..."):
+                try:
+                    temp_path = f"temp_{uploaded_file.name}"
+                    with open(temp_path, "wb") as f:
+                        f.write(uploaded_file.getvalue())
+
+                    rag = get_rag()
+                    rag.ingest(temp_path)
+                    st.success("Documento carregado e processado com sucesso!")
+                    os.remove(temp_path)
+                except Exception as e:
+                    st.error(f"Erro ao processar o PDF: {str(e)}")
 
     st.divider()
     if st.button("🗑️ Limpar Histórico"):
@@ -88,9 +115,18 @@ with col1:
     # Campo de input
     if prompt := st.chat_input("Digite sua mensagem aqui..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        chain = get_chain()
 
-        if chain:
+        # Obter a chain ou o RAG dependendo da escolha do usuário
+        chain = None
+        rag = None
+
+        if chat_model == 'Chat Padrão':
+            chain = get_chain()
+        elif chat_model == 'RAG Chat':
+            rag = get_rag()
+
+        # Executar a resposta com base na escolha
+        if chat_model == 'Chat Padrão' and chain:
             try:
                 with st.spinner("🤔 Pensando..."):
                     response = chain.run(prompt)
@@ -100,12 +136,24 @@ with col1:
                 st.session_state.messages.append({"role": "assistant", "content": response})
                 st.rerun()
             except Exception as e:
-                error_msg = f"Erro ao obter resposta: {str(e)}"
+                error_msg = f"Erro ao obter resposta do Chat Padrão: {str(e)}"
+                st.error(error_msg)
+                st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                st.rerun()
+
+        elif chat_model == 'RAG Chat' and rag:
+            try:
+                with st.spinner("🔍 Buscando resposta no documento..."):
+                    response = rag.ask(prompt)
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                st.rerun()
+            except Exception as e:
+                error_msg = f"Erro ao responder com RAG: {str(e)}"
                 st.error(error_msg)
                 st.session_state.messages.append({"role": "assistant", "content": error_msg})
                 st.rerun()
         else:
-            st.error("Não foi possível inicializar a conexão com o modelo.")
+            st.error("Não foi possível inicializar o modelo selecionado.")
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": "Erro ao conectar ao modelo."

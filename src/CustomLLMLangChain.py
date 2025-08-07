@@ -17,7 +17,7 @@ class CustomLLMLangChain(LLM):
             "stream": False
         }
         try:
-            response = requests.post(self.base_url, json=payload, timeout=30)
+            response = requests.post(self.base_url, json=payload, timeout=60)
             response.raise_for_status()
             return response.json().get("response", "").strip()
         except requests.exceptions.ConnectionError:
